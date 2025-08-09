@@ -1,0 +1,6 @@
+subscription_id = "c416af37-ef00-485c-85b0-8839fda1f060"
+location        = "switzerlandnorth"
+admin_login     = "4dm1n157r470r"
+admin_password  = "4-v3ry-53cr37-p455w0rd"
+repo_url        = "https://github.com/VeselinMar/azure-terraform-practice.git"
+repo_branch     = "master"

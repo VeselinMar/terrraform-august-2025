@@ -8,9 +8,8 @@ terraform {
 }
 
 provider "azurerm" {
-  features {
-  }
-  subscription_id = "c416af37-ef00-485c-85b0-8839fda1f060"
+  features {}
+  subscription_id = var.subscription_id
 }
 
 resource "random_integer" "ri" {
@@ -20,13 +19,13 @@ resource "random_integer" "ri" {
 
 resource "azurerm_resource_group" "vesoRG" {
   name     = "AzureTasks${random_integer.ri.result}"
-  location = "switzerlandnorth"
+  location = var.location
 }
 
 resource "azurerm_service_plan" "asp" {
   name                = "AzureTaskServicePlan${random_integer.ri.result}"
   resource_group_name = azurerm_resource_group.vesoRG.name
-  location            = azurerm_resource_group.vesoRG.location
+  location            = var.location
   os_type             = "Linux"
   sku_name            = "F1"
 }
@@ -34,7 +33,7 @@ resource "azurerm_service_plan" "asp" {
 resource "azurerm_linux_web_app" "alwa" {
   name                = "AzureTasks${random_integer.ri.result}"
   resource_group_name = azurerm_resource_group.vesoRG.name
-  location            = azurerm_resource_group.vesoRG.location
+  location            = var.location
   service_plan_id     = azurerm_service_plan.asp.id
 
   site_config {
@@ -43,20 +42,21 @@ resource "azurerm_linux_web_app" "alwa" {
     }
     always_on = false
   }
+
   connection_string {
     name  = "DefaultConnection"
     type  = "SQLAzure"
-    value = "Data Source=tcp:${azurerm_mssql_server.server.fully_qualified_domain_name},1433;Initial Catalog=${azurerm_mssql_database.database.name};User ID=${azurerm_mssql_server.server.administrator_login};Password=${azurerm_mssql_server.server.administrator_login_password};Trusted_Connection=False;MultipleActiveResultSets=True;"
+    value = "Data Source=tcp:${azurerm_mssql_server.server.fully_qualified_domain_name},1433;Initial Catalog=${azurerm_mssql_database.database.name};User ID=${var.admin_login};Password=${var.admin_password};Trusted_Connection=False;MultipleActiveResultSets=True;"
   }
 }
 
 resource "azurerm_mssql_server" "server" {
   name                         = "task-board-sql-${random_integer.ri.result}"
   resource_group_name          = azurerm_resource_group.vesoRG.name
-  location                     = azurerm_resource_group.vesoRG.location
+  location                     = var.location
   version                      = "12.0"
-  administrator_login          = "4dm1n157r470r"
-  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+  administrator_login          = var.admin_login
+  administrator_login_password = var.admin_password
 }
 
 resource "azurerm_mssql_database" "database" {
@@ -77,7 +77,7 @@ resource "azurerm_mssql_firewall_rule" "firewall" {
 
 resource "azurerm_app_service_source_control" "aassc" {
   app_id                 = azurerm_linux_web_app.alwa.id
-  repo_url               = "https://github.com/VeselinMar/azure-terraform-practice.git"
-  branch                 = "master"
+  repo_url               = var.repo_url
+  branch                 = var.repo_branch
   use_manual_integration = true
 }
