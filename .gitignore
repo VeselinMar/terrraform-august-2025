@@ -22,3 +22,5 @@ terraform.rc
 *~
 *.bak
 *.swp
+
+config
